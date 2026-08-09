@@ -15,22 +15,22 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "users")
-public class User {
+@Table(name = "refresh_tokens")
+public class RefreshToken {
     @Id
     private UUID id;
 
-    @Column(name = "first_name", nullable = false)
-    private String firstName;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
-    @Column(name = "last_name", nullable = false)
-    private String lastName;
+    @Column(name = "token_hash", nullable = false, unique = true)
+    private String tokenHash;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+    @Column(name = "expires_at", nullable = false)
+    private Instant expiresAt;
 
-    @Column(nullable = false)
-    private String passwordHash;
+    @Column(name = "revoked_at")
+    private Instant revokedAt;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;

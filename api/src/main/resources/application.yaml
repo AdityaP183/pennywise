@@ -1,5 +1,16 @@
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiration: ${ACCESS_TOKEN_EXPIRATION:15m}
+    refresh-token-expiration: ${REFRESH_TOKEN_EXPIRATION:7d}
+
+  cookie:
+    secure: ${COOKIE_SECURE:false}
+
 server:
   port: 8000
+  servlet:
+    context-path: /api/v1
 
 spring:
   application:
