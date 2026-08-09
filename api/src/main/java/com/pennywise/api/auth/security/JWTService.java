@@ -30,7 +30,6 @@ public class JWTService {
     }
 
     public String generateAccessToken(User user) {
-
         Instant now = Instant.now();
 
         return Jwts.builder()
@@ -56,7 +55,6 @@ public class JWTService {
     }
 
     public UUID getUserId(String token) {
-
         String subject = Jwts.parser()
                 .verifyWith(secretKey)
                 .build()

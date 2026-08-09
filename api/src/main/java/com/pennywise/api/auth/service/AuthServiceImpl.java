@@ -4,10 +4,12 @@ import com.pennywise.api.auth.dto.request.LoginRequest;
 import com.pennywise.api.auth.dto.request.RegisterRequest;
 import com.pennywise.api.auth.dto.response.LoginResult;
 import com.pennywise.api.auth.dto.response.UserResponse;
+import com.pennywise.api.auth.model.RefreshToken;
 import com.pennywise.api.auth.model.User;
 import com.pennywise.api.auth.repository.UserRepository;
 import com.pennywise.api.auth.security.JWTService;
 import com.pennywise.api.common.exception.BadRequestException;
+import com.pennywise.api.common.exception.UnauthorizedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -94,5 +96,26 @@ public class AuthServiceImpl implements AuthService {
                 accessToken,
                 refreshToken
         );
+    }
+
+    @Override
+    public String refresh(String refreshToken) {
+        RefreshToken storedToken = refreshTokenService.validate(refreshToken);
+
+        User user = userRepository
+                .findById(storedToken.getUserId())
+                .orElseThrow(() ->
+                        new UnauthorizedException("User associated with refresh token not found")
+                );
+
+        return jwtService.generateAccessToken(user);
+    }
+
+    @Override
+    public void logout(String refreshToken) {
+        RefreshToken storedToken =
+                refreshTokenService.validate(refreshToken);
+
+        refreshTokenService.revoke(storedToken);
     }
 }

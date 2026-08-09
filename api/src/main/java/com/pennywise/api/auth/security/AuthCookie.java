@@ -46,4 +46,24 @@ public class AuthCookie {
                 .maxAge(refreshTokenExpiration)
                 .build();
     }
+
+    public ResponseCookie clearAccessToken() {
+        return ResponseCookie.from("access_token", "")
+                .httpOnly(true)
+                .secure(secure)
+                .sameSite("Lax")
+                .path("/")
+                .maxAge(Duration.ZERO)
+                .build();
+    }
+
+    public ResponseCookie clearRefreshToken() {
+        return ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(secure)
+                .sameSite("Lax")
+                .path("/api/v1/auth")
+                .maxAge(Duration.ZERO)
+                .build();
+    }
 }

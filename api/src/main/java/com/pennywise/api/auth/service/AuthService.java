@@ -7,5 +7,10 @@ import com.pennywise.api.auth.dto.response.UserResponse;
 
 public interface AuthService {
     UserResponse register(RegisterRequest request);
+
     LoginResult login(LoginRequest request);
+
+    String refresh(String refreshToken);
+
+    void logout(String refreshToken);
 }
