@@ -1,5 +1,6 @@
 package com.pennywise.api.auth.service;
 
+import com.pennywise.api.auth.dto.request.ChangePasswordRequest;
 import com.pennywise.api.auth.dto.request.LoginRequest;
 import com.pennywise.api.auth.dto.request.RegisterRequest;
 import com.pennywise.api.auth.dto.response.LoginResult;
@@ -9,6 +10,7 @@ import com.pennywise.api.auth.model.User;
 import com.pennywise.api.auth.repository.UserRepository;
 import com.pennywise.api.auth.security.JWTService;
 import com.pennywise.api.common.exception.BadRequestException;
+import com.pennywise.api.common.exception.ResourceNotFoundException;
 import com.pennywise.api.common.exception.UnauthorizedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -117,5 +119,47 @@ public class AuthServiceImpl implements AuthService {
                 refreshTokenService.validate(refreshToken);
 
         refreshTokenService.revoke(storedToken);
+    }
+
+    @Override
+    public void changePassword(
+            UUID userId,
+            ChangePasswordRequest request
+    ) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found"
+                        )
+                );
+
+        boolean currentPasswordCorrect =
+                passwordEncoder.matches(
+                        request.currentPassword(),
+                        user.getPasswordHash()
+                );
+
+        if (!currentPasswordCorrect) {
+            throw new UnauthorizedException(
+                    "Current password is incorrect"
+            );
+        }
+
+        if (passwordEncoder.matches(
+                request.newPassword(),
+                user.getPasswordHash()
+        )) {
+            throw new BadRequestException(
+                    "New password must be different from current password"
+            );
+        }
+
+        user.setPasswordHash(
+                passwordEncoder.encode(request.newPassword())
+        );
+
+        user.setUpdatedAt(Instant.now());
+
+        userRepository.save(user);
     }
 }

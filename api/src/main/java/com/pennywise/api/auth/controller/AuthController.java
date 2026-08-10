@@ -1,5 +1,6 @@
 package com.pennywise.api.auth.controller;
 
+import com.pennywise.api.auth.dto.request.ChangePasswordRequest;
 import com.pennywise.api.auth.dto.request.LoginRequest;
 import com.pennywise.api.auth.dto.request.RegisterRequest;
 import com.pennywise.api.auth.dto.response.LoginResult;
@@ -14,10 +15,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -101,6 +105,20 @@ public class AuthController {
                 HttpHeaders.SET_COOKIE,
                 authCookie.clearRefreshToken().toString()
         );
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            Authentication authentication
+    ) {
+        if (!(authentication.getPrincipal() instanceof UUID userId)) {
+            throw new UnauthorizedException("Invalid authentication");
+        }
+
+        authService.changePassword(userId, request);
 
         return ResponseEntity.noContent().build();
     }
