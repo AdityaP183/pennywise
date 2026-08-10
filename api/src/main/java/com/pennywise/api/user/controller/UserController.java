@@ -6,10 +6,11 @@ import com.pennywise.api.auth.repository.UserRepository;
 import com.pennywise.api.common.exception.ResourceNotFoundException;
 import com.pennywise.api.common.exception.UnauthorizedException;
 import com.pennywise.api.common.response.ApiResponse;
+import com.pennywise.api.user.dto.request.UpdateUserRequest;
+import com.pennywise.api.user.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -17,9 +18,11 @@ import java.util.UUID;
 @RequestMapping("/users")
 public class UserController {
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository) {
+    public UserController(UserRepository userRepository, UserService userService) {
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @GetMapping("/me")
@@ -50,6 +53,24 @@ public class UserController {
 
         return ApiResponse.success(
                 "User retrieved successfully",
+                response
+        );
+    }
+
+    @PatchMapping("/me")
+    public ApiResponse<UserResponse> updateMe(
+            @Valid @RequestBody UpdateUserRequest request,
+            Authentication authentication
+    ) {
+        if (!(authentication.getPrincipal() instanceof UUID userId)) {
+            throw new UnauthorizedException("Invalid authentication");
+        }
+
+        UserResponse response =
+                userService.updateUser(userId, request);
+
+        return ApiResponse.success(
+                "User updated successfully",
                 response
         );
     }
