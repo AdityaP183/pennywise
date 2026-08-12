@@ -8,16 +8,21 @@ import com.pennywise.api.transactions.dto.request.CreateTransactionRequest;
 import com.pennywise.api.transactions.dto.request.TransactionQuery;
 import com.pennywise.api.transactions.dto.request.UpdateTransactionRequest;
 import com.pennywise.api.transactions.dto.response.TransactionResponse;
+import com.pennywise.api.transactions.dto.response.TransactionSummaryResponse;
 import com.pennywise.api.transactions.model.Transaction;
+import com.pennywise.api.transactions.model.TransactionRange;
 import com.pennywise.api.transactions.model.TransactionSortBy;
 import com.pennywise.api.transactions.repository.TransactionRepository;
 import com.pennywise.api.transactions.repository.TransactionSpecification;
+import com.pennywise.api.transactions.repository.TransactionSummaryProjection;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -178,6 +183,95 @@ public class TransactionServiceImpl implements TransactionService {
         transactionRepository.delete(transaction);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public TransactionSummaryResponse getTransactionSummary(
+            UUID userId,
+            TransactionRange range
+    ) {
+        Instant now = Instant.now();
+        Instant start;
+        List<TransactionSummaryProjection> rows;
+
+        switch (range) {
+            case THIS_MONTH -> {
+                start = now
+                        .atZone(ZoneOffset.UTC)
+                        .withDayOfMonth(1)
+                        .toLocalDate()
+                        .atStartOfDay(ZoneOffset.UTC)
+                        .toInstant();
+
+                rows = transactionRepository.getDailySummary(
+                        userId,
+                        start,
+                        now
+                );
+            }
+            case LAST_3_MONTHS -> {
+                start = now
+                        .atZone(ZoneOffset.UTC)
+                        .minusMonths(3)
+                        .toInstant();
+
+                rows = transactionRepository.getDailySummary(
+                        userId,
+                        start,
+                        now
+                );
+            }
+            case ALL_TIME -> {
+                start = Instant.EPOCH;
+
+                rows = transactionRepository.getMonthlySummary(
+                        userId,
+                        start,
+                        now
+                );
+            }
+            default -> throw new IllegalArgumentException(
+                    "Unsupported transaction range"
+            );
+        }
+
+        List<TransactionSummaryResponse.TransactionSummaryPoint> data =
+                rows.stream()
+                        .map(row ->
+                                new TransactionSummaryResponse
+                                        .TransactionSummaryPoint(
+                                        row.getPeriod(),
+                                        row.getIncome(),
+                                        row.getExpense(),
+                                        row.getAmount()
+                                )
+                        )
+                        .toList();
+
+        BigDecimal totalIncome = data.stream()
+                .map(
+                        TransactionSummaryResponse
+                                .TransactionSummaryPoint::income
+                )
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalExpense = data.stream()
+                .map(
+                        TransactionSummaryResponse
+                                .TransactionSummaryPoint::expense
+                )
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal net = totalIncome.add(totalExpense);
+
+        return new TransactionSummaryResponse(
+                range,
+                totalIncome,
+                totalExpense,
+                net,
+                data
+        );
+    }
+
     private Sort createSort(TransactionQuery query) {
         TransactionSortBy sortBy =
                 query.sortBy() != null
@@ -190,14 +284,10 @@ public class TransactionServiceImpl implements TransactionService {
                         : SortDirection.DESC;
 
         String field = switch (sortBy) {
-            case TRANSACTION_DATE ->
-                    "transactionDate";
-            case AMOUNT ->
-                    "amount";
-            case CREATED_AT ->
-                    "createdAt";
-            case UPDATED_AT ->
-                    "updatedAt";
+            case TRANSACTION_DATE -> "transactionDate";
+            case AMOUNT -> "amount";
+            case CREATED_AT -> "createdAt";
+            case UPDATED_AT -> "updatedAt";
         };
 
         Sort.Direction sortDirection =

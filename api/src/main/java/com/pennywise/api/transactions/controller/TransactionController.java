@@ -7,6 +7,8 @@ import com.pennywise.api.transactions.dto.request.CreateTransactionRequest;
 import com.pennywise.api.transactions.dto.request.TransactionQuery;
 import com.pennywise.api.transactions.dto.request.UpdateTransactionRequest;
 import com.pennywise.api.transactions.dto.response.TransactionResponse;
+import com.pennywise.api.transactions.dto.response.TransactionSummaryResponse;
+import com.pennywise.api.transactions.model.TransactionRange;
 import com.pennywise.api.transactions.model.TransactionSortBy;
 import com.pennywise.api.transactions.model.TransactionType;
 import com.pennywise.api.transactions.service.TransactionService;
@@ -156,6 +158,33 @@ public class TransactionController {
         return ApiResponse.success(
                 "Transaction deleted successfully",
                 null
+        );
+    }
+
+    @GetMapping("/summary")
+    public ApiResponse<TransactionSummaryResponse> getTransactionSummary(
+            @RequestParam(
+                    defaultValue = "ALL_TIME"
+            ) TransactionRange range,
+            Authentication authentication
+    ) {
+        Object principal = authentication.getPrincipal();
+
+        if (!(principal instanceof UUID userId)) {
+            throw new UnauthorizedException(
+                    "Invalid authentication"
+            );
+        }
+
+        TransactionSummaryResponse response =
+                transactionService.getTransactionSummary(
+                        userId,
+                        range
+                );
+
+        return ApiResponse.success(
+                "Transaction summary retrieved successfully",
+                response
         );
     }
 }
