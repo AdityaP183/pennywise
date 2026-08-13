@@ -1,28 +1,105 @@
-import React from 'react';
-import Navbar from './components/custom-components/Navbar';
-import { LoginForm } from './components/custom-components/LoginForm';
-import { SignupForm } from './components/custom-components/SignupForm';
+import {
+    Navigate,
+    Route,
+    BrowserRouter as Router,
+    Routes,
+} from "react-router-dom";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import PublicRoute from "./components/auth/PublicRoute";
+import DashboardLayout from "./components/layout/DashboardLayout";
+import { AuthProvider } from "./context/AuthContext";
+
+import Budgets from "./pages/Budgets";
+import Dashboard from "./pages/Dashboard";
+import Groups from "./pages/Groups";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
+import Register from "./pages/Register";
+import Transactions from "./pages/Transactions";
 
 function App() {
     return (
-        <div className="min-h-screen bg-background">
-            <Navbar />
-            <main >
-                {/* <div className="flex min-h-[80vh] w-full items-center justify-center p-6 md:p-10">
-                    <div className="w-full max-w-sm">
-                        <LoginForm /> 
-                        
-                    </div>
-                </div> */}
-                <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-                    <div className="flex w-full max-w-sm flex-col gap-6">
-                        <SignupForm />
-                    </div>
-                </div>
+        <AuthProvider>
+            <Router>
+                <Routes>
+                    {/* Public Authentication Pages */}
+                    <Route
+                        path="/login"
+                        element={
+                            <PublicRoute>
+                                <Login />
+                            </PublicRoute>
+                        }
+                    />
+                    <Route
+                        path="/register"
+                        element={
+                            <PublicRoute>
+                                <Register />
+                            </PublicRoute>
+                        }
+                    />
 
+                    {/* Protected Dashboard/App Pages */}
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
+                                    <Dashboard />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/transactions"
+                        element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
+                                    <Transactions />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/budgets"
+                        element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
+                                    <Budgets />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/groups"
+                        element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
+                                    <Groups />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/profile"
+                        element={
+                            <ProtectedRoute>
+                                <DashboardLayout>
+                                    <Profile />
+                                </DashboardLayout>
+                            </ProtectedRoute>
+                        }
+                    />
 
-            </main>
-        </div>
+                    {/* Root Fallback Redirect */}
+                    <Route
+                        path="*"
+                        element={<Navigate to="/dashboard" replace />}
+                    />
+                </Routes>
+            </Router>
+        </AuthProvider>
     );
 }
 
