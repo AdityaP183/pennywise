@@ -1,18 +1,56 @@
-# React + Vite
+# Pennywise Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend application for **Pennywise**, a personal finance management platform that helps users track income, expenses, transactions, and understand their financial activity through a clean and intuitive interface.
 
-Currently, two official plugins are available:
+Built with React and Vite, the application communicates with the Pennywise Spring Boot backend through a REST API.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
 
-## React Compiler
+- React
+- Vite
+- JavaScript (JSX)
+- Tailwind CSS
+- shadcn/ui
+- React Router
+- TanStack Query
+- Zustand
+- Zod
+- Lucide React
+- pnpm
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Features
 
-Note: This will impact Vite dev & build performances.
+- User registration and authentication
+- Protected and guest-only routes
+- Automatic access-token refresh
+- Persistent authentication through HTTP-only cookies
+- Dashboard
+- Transaction management
+- Income and expense tracking
+- Financial data visualization
+- Responsive UI
+- Light and dark theme support
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```text
+src/
+├── assets/
+├── components/
+│   ├── layout/
+│   ├── common/
+│   └── ui/
+├── features/
+│   └── auth/
+├── layouts/
+├── lib/
+│   ├── api/
+│   └── query-client.js
+├── pages/
+│   ├── auth/
+│   └── app/
+├── routes/
+├── App.jsx
+├── index.css
+└── main.jsx
+```
